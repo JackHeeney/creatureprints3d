@@ -1,0 +1,15 @@
+.vercel
+.next/
+node_modules/
+
+# Local environment files
+.env*
+!.env.example
+
+# Development output
+*.log
+/*.png
+
+# OS and editor metadata
+.DS_Store
+Thumbs.db
