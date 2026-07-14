@@ -1,8 +1,12 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowRight, ShoppingBag, Star } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
+import { getProduct } from "@/data/products";
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
@@ -22,7 +26,14 @@ const products = [
   { name: "Frog & Gecko Tire Swing", price: "£8.99", src: "/frog-gecko-tire-swing.webp", category: "ENRICHMENT", description: "A playful hanging perch that brings movement and variety into vertical habitats.", step: 4, side: "right", position: "high" },
 ] as const;
 
-function Brand(){return <a className="brand" href="#top"><b>CREATURE</b> PRINT 3D <i>cp</i></a>}
+const productHref=(name:string)=>{
+  const product=getProductByName(name);
+  return product?`/products/${product.slug}`:"/products";
+};
+
+const getProductByName=(name:string)=>getProduct(
+  name.toLowerCase().replaceAll(" & ", "-and-").replaceAll(" ", "-")
+);
 
 const parallaxScenes = [
   { eyebrow: "Creature favourite / 01", title: <>A little shelter.<br/><span>A lot of character.</span></>, body: "Our mushroom hide gives tortoises and small reptiles a secure retreat without disappearing into the scenery.", product: "Mushroom Tortoise Hide", price: "£14.99", src: "/parallax-tortoise-shelter.png", productImage: "/mushroom-tortoise-hide.webp", stat: "POPULAR HIDE" },
@@ -62,10 +73,10 @@ function ParallaxShowcase(){
         <div className="parallax-copy">
           <p>{item.eyebrow}</p><h2>{item.title}</h2><p className="parallax-body">{item.body}</p>
         </div>
-        <a className="parallax-product-preview" href="#collection" aria-label={`View ${item.product}`}>
+        <Link className="parallax-product-preview" href={productHref(item.product)} aria-label={`View ${item.product}`}>
           <Image src={item.productImage} alt={item.product} fill sizes="(max-width: 800px) 48vw, 280px" />
-        </a>
-        <a className="parallax-product" href="#collection"><small>{item.stat}</small><b>{item.product}</b><span>{item.price} <ArrowRight size={15}/></span></a>
+        </Link>
+        <Link className="parallax-product" href={productHref(item.product)}><small>{item.stat}</small><b>{item.product}</b><span>{item.price} <ArrowRight size={15}/></span></Link>
       </article>)}
       <div className="parallax-rail">{parallaxScenes.map((item,index)=><i key={item.product} className={scene===index?"active":""}/>)}</div>
     </div>
@@ -89,16 +100,6 @@ function ReviewCarousel(){
     <div className="review-slide" aria-live="polite"><blockquote>“{review.quote}”</blockquote><p>{review.author} — {review.label}</p></div>
     <nav className="review-controls" aria-label="Review carousel controls"><button type="button" onClick={()=>move(-1)} aria-label="Previous review"><ArrowLeft/></button><button type="button" onClick={()=>move(1)} aria-label="Next review"><ArrowRight/></button></nav>
   </section>;
-}
-
-function NewsletterSignup(){
-  const [message,setMessage]=useState("");
-  return <form className="newsletter" onSubmit={(event)=>{event.preventDefault();setMessage("Thanks — signup integration comes next.")}}>
-    <p>KEEPERS’ NOTES</p><h3>New habitats, care ideas and workshop updates.</h3>
-    <label htmlFor="newsletter-email">Email address</label>
-    <div><input id="newsletter-email" name="email" type="email" autoComplete="email" placeholder="you@example.com" required/><button type="submit" aria-label="Join the newsletter"><ArrowRight/></button></div>
-    <small aria-live="polite">{message||"Occasional emails. No clutter."}</small>
-  </form>;
 }
 
 export function ScrollWorld(){
@@ -128,16 +129,16 @@ export function ScrollWorld(){
           <Image src="/living-habitat-hero.png" alt="" fill priority sizes="100vw" />
         </figure>
         <div className="grain"/>
-        <header className="story-nav"><Brand/><nav aria-label="Main navigation"><a href="#collection">Collection</a><a href="#craft">Our craft</a><a href="#reviews">Reviews</a></nav><div><a className="shop-link" href="#collection">Shop now <ArrowRight size={15}/></a><a className="mobile-shop" href="#collection" aria-label="Browse the product collection"><ShoppingBag size={18}/></a></div></header>
+        <SiteHeader className="story-nav"/>
         <div className="chapter-count">{String(active+1).padStart(2,"0")} / 06</div>
         <div className="progress" aria-hidden="true"><i ref={progressBar}/></div>
         {chapters.map((chapter,i)=><section key={chapter.k} className={`chapter ${chapter.align} ${active===i?"active":""}`} aria-hidden={active!==i}>
-          <div><p className="chapter-label">{chapter.label||"3D printed habitats · Made in the UK"}</p>{i===0?<h1>{chapter.title}</h1>:<h2>{chapter.title}</h2>}<p className="chapter-body">{chapter.body}</p>{i===0&&<a className="outline-button" href="#collection">Explore habitats <ArrowRight size={16}/></a>}{i===5&&<a className="solid-button" href="#collection">Shop creature favourites <ArrowRight size={16}/></a>}</div>
+          <div><p className="chapter-label">{chapter.label||"3D printed habitats · Made in the UK"}</p>{i===0?<h1>{chapter.title}</h1>:<h2>{chapter.title}</h2>}<p className="chapter-body">{chapter.body}</p>{i===0&&<a className="outline-button" href="#collection">Explore habitats <ArrowRight size={16}/></a>}{i===5&&<Link className="solid-button" href="/products">Shop creature favourites <ArrowRight size={16}/></Link>}</div>
         </section>)}
         <div className="hero-products" aria-live="polite">
-          {products.map((product, index) => <a
+          {products.map((product, index) => <Link
             key={product.name}
-            href="#collection"
+            href={productHref(product.name)}
             className={`hero-product ${product.side} ${product.position} ${active === product.step ? "visible" : ""}`}
             aria-hidden={active !== product.step}
             tabIndex={active === product.step ? 0 : -1}
@@ -145,24 +146,24 @@ export function ScrollWorld(){
           >
             <span className="hero-product-image"><Image src={product.src} alt={product.name} fill sizes="(max-width: 800px) 120px, 180px" /></span>
             <span className="hero-product-meta"><b>{product.name}</b><i>{product.price}</i></span>
-          </a>)}
+          </Link>)}
         </div>
-        <div className="scroll-cue"><ArrowDown size={14}/><span>Scroll to explore</span></div>
+        <a className="scroll-cue down-arrow-trigger" href="#collection"><span className="down-arrow-loop" aria-hidden="true"><ArrowDown size={14}/><ArrowDown size={14}/></span><span>Scroll to explore</span></a>
       </div>
     </div>
 
     <section className="after-story" id="collection"><header className="section-top"><p>CREATURE FAVOURITES / 01</p><h2>Unexpected homes<br/>for extraordinary creatures.</h2></header>
       <div className="cards">
         {products.map(product=><article key={product.name} className="collection-card">
-          <a href="#collection" aria-label={`View ${product.name}`}>
+          <Link href={productHref(product.name)} aria-label={`View ${product.name}`}>
             <div className="card-image"><Image src={product.src} alt={product.name} fill sizes="(max-width: 800px) 100vw, 25vw" /><span>{product.category}</span></div>
             <div className="card-content"><p>MADE TO ORDER</p><h3>{product.name}</h3><p className="card-description">{product.description}</p><div className="card-action"><b>VIEW PRODUCT <ArrowRight size={14}/></b><strong>{product.price}</strong></div></div>
-          </a>
+          </Link>
         </article>)}
-      </div><a className="collection-all" href="#collection">View all products <ArrowRight size={16}/></a>
+      </div><Link className="collection-all" href="/products">View all products <ArrowRight size={16}/></Link>
     </section>
     <ParallaxShowcase/>
     <ReviewCarousel/>
-    <footer><Brand/><div className="footer-main"><div><h2>Give their world<br/>more character.</h2><a className="solid-button" href="#collection">Explore the collection <ArrowRight size={16}/></a></div><NewsletterSignup/></div><div className="footer-meta"><span>© 2026 CREATURE PRINT 3D</span><span>INSTAGRAM · ETSY · CONTACT</span></div></footer>
+    <SiteFooter/>
   </main>;
 }
